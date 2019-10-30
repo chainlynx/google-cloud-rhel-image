@@ -31,10 +31,10 @@ You need the following packages on your Centos 7 workstation to create an config
 
 <table>
 
-  <tr bgcolor="#ccc">
-    <th>Package</th>
-    <th>Repository</th>
-    <th>Description</th>
+  <tr bgcolor="#cccccc">
+    <th align="left">Package</th>
+    <th align="left">Repository</th>
+    <th align="left">Description</th>
   </tr>
   <tr>
     <td nowrap="true">libvirt</td>
