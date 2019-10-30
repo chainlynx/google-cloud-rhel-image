@@ -216,3 +216,5 @@ Enter the following commands to preserve the instance configuration settings and
    ```
    $ gcloud compute images create <ConfiguredImageFromSnapshot> --source-snapshot <SnapshotName>
    ```
+
+Next Step: [Installing Openshift Enterprise on Google Cloud](https://github.com/chainlynx/google-cloud-openshift-ocp)
