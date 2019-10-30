@@ -29,3 +29,31 @@ You need the following packages on your Centos 7 workstation to create an config
 | libguestfs | rhel-7-server-rpms | A library for accessing and modifying virtual machine file systems |
 | libguestfs-tools | rhel-7-server-rpms | System administration tools for virtual machines; includes the guestfish utility |
 
+<table>
+
+  <tr bgcolor="#ccc">
+    <th>Package</th>
+    <th>Repository</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td nowrap="true">libvirt</td>
+    <td nowrap="true">rhel-7-server-rpms</td>
+    <td>Open source API, daemon, and management tool for managing platform virtualization</td>
+  </tr>
+  <tr>
+    <td nowrap="true">virt-manager</td>
+    <td nowrap="true">rhel-7-server-rpms</td>
+    <td>A command line and Gnome desktop virtual machine manager used to create and manage KVM virtual machines</td>
+  </tr>
+  <tr>
+    <td nowrap="true">libguestfs</td>
+    <td nowrap="true">rhel-7-server-rpms</td>
+    <td>A library for accessing and modifying virtual machine file systems</td>
+  </tr>
+  <tr>
+    <td nowrap="true">libguestfs-tools</td>
+    <td nowrap="true">rhel-7-server-rpms</td>
+    <td>System administration tools for virtual machines; includes the guestfish utility</td>
+  </tr>
+</table>
