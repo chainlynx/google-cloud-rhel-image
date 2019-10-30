@@ -20,17 +20,9 @@ Complete the following steps to create the base RHEL 7.7 VM image for GCP. Compl
 
 #### Before you Start
 
-You need the following packages on your Centos 7 workstation to create an configure the RHEL 7.7 VM image.
-
-| Package | Repository | Description |
-| ------- |:---------- |:----------- |
-| libvirt | rhel-7-server-rpms | Open source API, daemon, and management tool for managing platform virtualization |
-| virt-manager | rhel-7-server-rpms | A command line and Gnome desktop virtual machine manager used to create and manage KVM virtual machines |
-| libguestfs | rhel-7-server-rpms | A library for accessing and modifying virtual machine file systems |
-| libguestfs-tools | rhel-7-server-rpms | System administration tools for virtual machines; includes the guestfish utility |
+You need the following packages installed on your Centos 7 workstation to create an configure the RHEL 7.7 VM image.
 
 <table>
-
   <tr bgcolor="#cccccc">
     <th align="left">Package</th>
     <th align="left">Repository</th>
@@ -57,3 +49,10 @@ You need the following packages on your Centos 7 workstation to create an config
     <td>System administration tools for virtual machines; includes the guestfish utility</td>
   </tr>
 </table>
+
+#### Next Steps
+
+<ol>
+  <li>Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux]() from the Red Hat Customer Portal. You should download the Red Hat Enterprise Linux KVM Guest Image.</li>
+  <li>Move the image to ```/var/lib/libvirt/images```</li>
+</ol>
