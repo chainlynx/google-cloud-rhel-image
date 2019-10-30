@@ -52,7 +52,6 @@ You need the following packages installed on your Centos 7 workstation to create
 
 #### Next Steps
 
-
 1. Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) from the Red Hat Customer Portal. You should download the Red Hat Enterprise Linux KVM Guest Image.
 2. Move the image to ```/var/lib/libvirt/images```
 3. Create a new VM using virt-manager. Note the following when creating the VM.
@@ -63,3 +62,51 @@ You need the following packages installed on your Centos 7 workstation to create
    - The VM may hang momentarily at the IPV6 eth0 line when booting up. This is normal at this point in the installation.
    - ![Screenshot](images/virtiorhelvm.png)
    - For detailed virt-manager instructions, see [Create the RHEL VM from a RHEL KVM Guest Image](https://access.redhat.com/articles/uploading-rhel-image-to-azure#header11)
+4. Shut down the VM when you see the login prompt.
+5. From your RHEL system, set up root access to the VM. Use virt-customize to generate a root password for the VM. Make sure to create a strong password.
+   ```
+   # virt-customize -a <guest-image-path> --root-password password:<password>
+   ```
+   Example:
+   ```
+   # virt-customize -a /var/lib/libvirt/images/rhel-server-7.7-x86_64-kvm.qcow2 --root-password password:<password>
+   [   0.0] Examining the guest ...
+   [ 103.0] Setting a random seed
+   [ 103.0] Setting passwords
+   [ 112.0] Finishing off
+   ```
+6. Verify root access by starting the VM and logging in as root.
+7. Verify that python-boto and cloud-init are installed on the VM.
+   - python-boto is required for Red Hat Cloud Access RHEL VMs on GCP. This package is installed on the Red Hat Enterprise Linux KVM Guest Image. If python-boto is not installed on a custom image, enable the rhel-7-rh-common-rpms repository and install it.
+   - cloud-init handles cloud provisioning and is also installed on the KVM Guest image. If you need to install it, the package is available in rhel-7-server-rpms.
+   ```
+   # rpm -qa | grep python-boto
+   # rpm -qa | grep cloud-init
+   ```
+8. Temporarily enable root password access. Edit /etc/cloud/cloud.cfg and update ssh_pwauth from 0 to 1.
+   ```
+   ssh_pwauth: 1
+   ```
+
+#### Prepare and Import the base GCP image
+
+Complete the following steps to prepare the image for GCP
+
+1. Enter the following command to convert the file. Images uploaded to GCP need to be in raw format and named disk.raw.
+   ```
+   $ qemu-img convert -f qcow2 <ImageName>.qcow2 -O raw disk.raw
+   ```
+2. Enter the following command to compress the raw file. Images uploaded to GCP need to be compressed.
+   ```
+   $ tar -Sczf <ImageName>.tar.gz disk.raw
+   ```
+3. Import the compressed image to the bucket created earlier.
+   ```
+   $ gsutil cp <ImageName>.tar.gz gs://<BucketName>/
+   ```
+
+#### Create and configure a base GCP instance
+
+
+   
+   
