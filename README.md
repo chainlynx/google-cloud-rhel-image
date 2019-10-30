@@ -107,6 +107,112 @@ Complete the following steps to prepare the image for GCP
 
 #### Create and configure a base GCP instance
 
+Complete the following steps to create and configure an instance so it complies with GCP operating and security requirements for running instances.
 
+1. Enter the following command to create an image from the compressed file in the bucket.
+   ```
+   $ gcloud compute images create <BaseImageName> --source-uri gs://<BucketName>/<BaseImageName>.tar.gz
+   ```
+   Example:
+   ```
+   $ gcloud compute images create rhel-76-server --source-uri gs://user-rhel77/rhel-server-77.tar.gz
+   Created [https://www.googleapis.com/compute/v1/projects/MyProject/global/images/rhel-server-77].
+   NAME            PROJECT                 FAMILY  DEPRECATED  STATUS
+   rhel-77-server  rhel-77-server-testing                      READY
+   ```
+2. Enter the following command to create a template instance from the image. Note that these are the basic command options to create a RHEL HA instance attached to a service account. See Before you start for more information about the service account.
    
+   **Notes:**
+   - ```--machine-type n1-standard-2``` is the minimum size required for a base RHEL instance.
+   - See gcloud compute instances create for additional configuration options.
+   ```
+   $ gcloud compute instances create <BaseInstanceName> --can-ip-forward --machine-type n1-standard-2 --image <BaseImageName> --service-account <ServiceAccountEmail>
+   ```
+   Example:
+   ```
+   $ gcloud compute instances create rhel-77-server-base-instance --can-ip-forward --machine-type n1-standard-2 --image rhel-77-server --service-account account@project-name-on-gcp.iam.gserviceaccount.com
+   Created [https://www.googleapis.com/compute/v1/projects/rhel-testing-on-gcp/zones/us-east1-b/instances/rhel-77-server-base-instance].
+   NAME                              ZONE        MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
+   rhel-77-server-base-instance      us-east1-b  n1-standard-2               10.10.10.3   192.227.54.211  RUNNING
+   ```
+3. Connect to the instance with an SSH terminal session.
+   ```
+   $ ssh <GcpAccount>@<PublicIPaddress>
+   ```
+4. Update the RHEL software.
+   - Register with Red Hat Subscription Manager (RHSM).
+   - Enable a Subscription pool ID (or use --auto-attach).
+   - Disable all unnecessary repositories.
+      ```
+      # subscription-manager repos --disable=*
+      ```
+   - Enable the following repository.
+      ```
+      # subscription-manager repos --enable=rhel-7-server-rpms
+      ```
+   - Run yum update.
+      ```
+      yum update -y
+      ```
+5. Install the GCP Linux Guest Environment on the running instance (in-place installation). For instructions, see the section titled Install Guest Environment In-Place in Installing the Linux Guest Environment. Select the CENTOS/RHEL option. Copy the command script and paste it at the command prompt to run the script immediately.
+6. Make the following configuration changes to the instance.
+
+   **Note:** These change are based on GCP recommendations for custom images. See Configuring Imported Images.
    
+   - Edit the /etc/chrony.conf file. Remove all NTP servers. Add the following NTP server.
+      ```
+      metadata.google.internal iburst Google NTP server
+      ```
+   - Remove any persistent network device rules.
+      ```
+      # rm -f /etc/udev/rules.d/70-persistent-net.rules
+      # rm -f /etc/udev/rules.d/75-persistent-net-generator.rules
+      ```
+   - Set the network service to start automatically.
+      ```
+      # chkconfig network on
+      ```
+   - Set the ssh service to start automatically.
+      ```
+      # systemctl enable sshd
+      # systemctl is-enabled sshd
+      ```
+   - Enter the following command to set the timezone to UTC.
+      ```
+      # ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+      ```
+   - (Optional) Edit the /etc/ssh/ssh_config file and add the following lines to the end of the configuration. This keeps your SSH session alive during longer periods of inactivity.
+      ```
+      # Server times out connections after several minutes of inactivity.
+      # Keep alive ssh connections by sending a packet every 7 minutes.
+      ServerAliveInterval 420
+      ```
+   - Disable password access. Edit /etc/cloud/cloud.cfg and change ssh_pwauth from 1 to 0.
+      ```
+      ssh_pwauth: 0
+      ```
+      **Caution**: Password access was enabled earlier to allow SSH session access to configure the instance in-place. Do not leave this enabled. All SSH session access must be passwordless.
+   - Unregister the instance from subscription manager.
+      ```
+      # subscription-manager unregister
+      ```
+   - Clean the shell history. Keep the instance running for the next procedure.
+      ```
+      # export HISTSIZE=0
+      ```
+#### Take a snapshot and create a snapshot image
+
+Enter the following commands to preserve the instance configuration settings and create a snapshot. See Creating Persistent Disk Snapshots for additional information.
+
+1. On the running instance, enter the following command to synchronize data to disk.
+   ```
+   # sync
+   ```
+2. On your system, enter the following command to create the snapshot.
+   ```
+   $ gcloud compute disks snapshot <InstanceName> --snapshot-names <SnapshotName>
+   ```
+3. On your system, enter the following command to create the configured image from the snapshot.
+   ```
+   $ gcloud compute images create <ConfiguredImageFromSnapshot> --source-snapshot <SnapshotName>
+   ```
