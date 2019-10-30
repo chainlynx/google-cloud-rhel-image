@@ -52,7 +52,14 @@ You need the following packages installed on your Centos 7 workstation to create
 
 #### Next Steps
 
-<ol>
-  <li>Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux]() from the Red Hat Customer Portal. You should download the Red Hat Enterprise Linux KVM Guest Image.</li>
-  <li>Move the image to ```/var/lib/libvirt/images```</li>
-</ol>
+
+1. Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) from the Red Hat Customer Portal. You should download the Red Hat Enterprise Linux KVM Guest Image.
+2. Move the image to ```/var/lib/libvirt/images```
+3. Create a new VM using virt-manager. Note the following when creating the VM.
+   - Import an existing disk image and select the downloaded qcow2 file.
+   - Accept or change the memory and CPU settings to your application requirements.
+   - Select the Customize configuration before install check box.
+   - On the custom configuration dialog box, make sure that virtio is set as the NIC Device model, and then begin the installation.
+   - The VM may hang momentarily at the IPV6 eth0 line when booting up. This is normal at this point in the installation.
+   - ![Screenshot](images/virtiorhelvm.png)
+   - For detailed virt-manager instructions, see [Create the RHEL VM from a RHEL KVM Guest Image](https://access.redhat.com/articles/uploading-rhel-image-to-azure#header11)
