@@ -154,7 +154,7 @@ Complete the following steps to create and configure an instance so it complies 
    NAME            PROJECT                 FAMILY  DEPRECATED  STATUS
    rhel-77-server  rhel-77-server-testing                      READY
    ```
-2. Enter the following command to create a template instance from the image. Note that these are the basic command options to create a RHEL HA instance attached to a service account. See [Before you start]() for more information about the service account.
+2. Enter the following command to create a template instance from the image. Note that these are the basic command options to create a RHEL HA instance attached to a service account. See [Before you start](https://github.com/chainlynx/google-cloud-rhel-image#before-you-start) for more information about the service account.
    
    **Notes:**
    - ```--machine-type n1-standard-2``` is the minimum size required for a base RHEL instance.
