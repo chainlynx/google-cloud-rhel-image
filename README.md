@@ -8,17 +8,31 @@ Therefore, this guide is aimed at creating a custom image, adding support for th
 
 #### Prerequisites
 
-- You must belong to an active GCP project and have sufficient privaledges to create resources in the project.
+- You must belong to an active GCP project, and have sufficient privaledges to create resources in the project.
 
-- To proceed with this guide, you will need a Red Hat subscription, with the ability to access the base images here: 
+- To proceed with this guide, you will need a Red Hat subscription, with the ability to access the base images [here](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) 
 
 - **Note:** I also have a RHEL 7.7 image created that can be shared, to avoid building one yourself, and saving you a few steps, however it still requires activation with your subscription on each node you create with the image.
+
+- Your project should have a [service account](https://cloud.google.com/iam/docs/understanding-service-accounts). A service account is a special type of Google account that belongs to a VM instance, not an individual user. This creates a single source that can authorize API call permissions from all instances instead of having to manage authorization for individual user accounts. See [Using the Compute Engine Default Service Account](https://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances#using_the_compute_engine_default_service_account) for information about using the default service account instead of creating a separate service account.
+  
+  If you or your project administrator create a custom service account, the service account should be configured for the following roles.
+  
+  - Cloud Trace Agent
+  - Compute Admin
+  - Compute Network Admin
+  - Cloud Datastore User
+  - Logging Admin
+  - Monitoring Editor
+  - Monitoring Metric Writer
+  - Monitoring Metric Writer
+  - Storage Admin
 
 ### Getting Started
 
 Complete the following steps to create the base RHEL 7.7 VM image for GCP. Complete this procedure using a RHEL 7 Server, Centos 7 Server, or Fedora. For the purpose of this guide, we'll use the Centos 7 workstation created in the previous steps: [Installing / Configuring GNOME and VNC Server](https://github.com/chainlynx/google-cloud-centos-workstation/blob/master/Installing-Configuring-GNOME.md).
 
-#### Before you Start
+##### Before you Start
 
 You need the following packages installed on your Centos 7 workstation to create an configure the RHEL 7.7 VM image.
 
@@ -50,16 +64,36 @@ You need the following packages installed on your Centos 7 workstation to create
   </tr>
 </table>
 
+##### Install and configure the Google Cloud SDK
+
+Most examples in this guide use [gcloud](https://cloud.google.com/sdk/gcloud/) and [gsutil](https://cloud.google.com/storage/docs/gsutil) to manage RHEL resources in GCP. You install the Google Cloud SDK on your workstation to get these utilities. For information about how to install and configure the Google Cloud SDK, see the [Quickstart for Red Hat and Centos](https://cloud.google.com/sdk/docs/quickstart-redhat-centos).
+
+**Note**: You can also use the [GCP Console](https://console.cloud.google.com/) or [API requests](https://cloud.google.com/compute/docs/api/getting-started) to manage resources in GCP. Using the API also requires the Google Cloud SDK.
+
+##### Create a GCP image bucket
+
+You use the GCP storage utility (gsutil) to create a bucket where you store your images. Enter the following command to create a bucket for your image(s).
+
+The following command includes the minimum requirements for creating a [multi-regional](https://cloud.google.com/storage/docs/storage-classes#multi-regional) bucket in your default location. See [Creating Storage Buckets](https://cloud.google.com/storage/docs/gsutil/commands/mb) for additional options and bucket-naming requirements.
+
+```
+$ gsutil mb gs://<BucketName>
+```
+Example:
+```
+$ gsutil mb gs://rhel-77-bucket/
+```
+
 #### Next Steps
 
-1. Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) from the Red Hat Customer Portal. You should download the Red Hat Enterprise Linux KVM Guest Image.
+1. Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) from the Red Hat Customer Portal. You should download the **Red Hat Enterprise Linux KVM Guest Image***.
 2. Move the image to ```/var/lib/libvirt/images```
-3. Create a new VM using virt-manager. Note the following when creating the VM.
-   - Import an existing disk image and select the downloaded qcow2 file.
+3. Create a new VM using ```virt-manager```. Note the following when creating the VM.
+   - **Import an existing disk image** and select the downloaded qcow2 file.
    - Accept or change the memory and CPU settings to your application requirements.
-   - Select the Customize configuration before install check box.
-   - On the custom configuration dialog box, make sure that virtio is set as the NIC Device model, and then begin the installation.
-   - The VM may hang momentarily at the IPV6 eth0 line when booting up. This is normal at this point in the installation.
+   - Select the **Customize configuration before install** check box.
+   - On the custom configuration dialog box, make sure that **virtio** is set as the NIC Device model, and then begin the installation.
+   - The VM may hang momentarily at the ```IPV6 eth0``` line when booting up. This is normal at this point in the installation.
    - ![Screenshot](images/virtiorhelvm.png)
    - For detailed virt-manager instructions, see [Create the RHEL VM from a RHEL KVM Guest Image](https://access.redhat.com/articles/uploading-rhel-image-to-azure#header11)
 4. Shut down the VM when you see the login prompt.
@@ -76,14 +110,14 @@ You need the following packages installed on your Centos 7 workstation to create
    [ 112.0] Finishing off
    ```
 6. Verify root access by starting the VM and logging in as root.
-7. Verify that python-boto and cloud-init are installed on the VM.
-   - python-boto is required for Red Hat Cloud Access RHEL VMs on GCP. This package is installed on the Red Hat Enterprise Linux KVM Guest Image. If python-boto is not installed on a custom image, enable the rhel-7-rh-common-rpms repository and install it.
-   - cloud-init handles cloud provisioning and is also installed on the KVM Guest image. If you need to install it, the package is available in rhel-7-server-rpms.
+7. Verify that ```python-boto``` and ```cloud-init``` are installed on the VM.
+   - [python-boto](https://github.com/boto/boto) is required for Red Hat Cloud Access RHEL VMs on GCP. This package is installed on the **Red Hat Enterprise Linux KVM Guest Image**. If ```python-boto``` is not installed on a custom image, enable the ```rhel-7-rh-common-rpms``` repository and install it.
+   - ```cloud-init``` handles cloud provisioning and is also installed on the KVM Guest image. If you need to install it, the package is available in ```rhel-7-server-rpms```.
    ```
    # rpm -qa | grep python-boto
    # rpm -qa | grep cloud-init
    ```
-8. Temporarily enable root password access. Edit /etc/cloud/cloud.cfg and update ssh_pwauth from 0 to 1.
+8. Temporarily enable root password access. Edit ```/etc/cloud/cloud.cfg``` and update ```ssh_pwauth``` from **0** to **1**.
    ```
    ssh_pwauth: 1
    ```
@@ -92,7 +126,7 @@ You need the following packages installed on your Centos 7 workstation to create
 
 Complete the following steps to prepare the image for GCP
 
-1. Enter the following command to convert the file. Images uploaded to GCP need to be in raw format and named disk.raw.
+1. Enter the following command to convert the file. Images uploaded to GCP need to be in raw format and named **disk.raw**.
    ```
    $ qemu-img convert -f qcow2 <ImageName>.qcow2 -O raw disk.raw
    ```
@@ -120,11 +154,11 @@ Complete the following steps to create and configure an instance so it complies 
    NAME            PROJECT                 FAMILY  DEPRECATED  STATUS
    rhel-77-server  rhel-77-server-testing                      READY
    ```
-2. Enter the following command to create a template instance from the image. Note that these are the basic command options to create a RHEL HA instance attached to a service account. See Before you start for more information about the service account.
+2. Enter the following command to create a template instance from the image. Note that these are the basic command options to create a RHEL HA instance attached to a service account. See [Before you start]() for more information about the service account.
    
    **Notes:**
    - ```--machine-type n1-standard-2``` is the minimum size required for a base RHEL instance.
-   - See gcloud compute instances create for additional configuration options.
+   - See [gcloud compute instances create](https://cloud.google.com/sdk/gcloud/reference/compute/instances/create) for additional configuration options.
    ```
    $ gcloud compute instances create <BaseInstanceName> --can-ip-forward --machine-type n1-standard-2 --image <BaseImageName> --service-account <ServiceAccountEmail>
    ```
@@ -141,7 +175,7 @@ Complete the following steps to create and configure an instance so it complies 
    ```
 4. Update the RHEL software.
    - Register with Red Hat Subscription Manager (RHSM).
-   - Enable a Subscription pool ID (or use --auto-attach).
+   - Enable a Subscription pool ID (or use ```--auto-attach```).
    - Disable all unnecessary repositories.
       ```
       # subscription-manager repos --disable=*
@@ -154,12 +188,12 @@ Complete the following steps to create and configure an instance so it complies 
       ```
       yum update -y
       ```
-5. Install the GCP Linux Guest Environment on the running instance (in-place installation). For instructions, see the section titled Install Guest Environment In-Place in Installing the Linux Guest Environment. Select the CENTOS/RHEL option. Copy the command script and paste it at the command prompt to run the script immediately.
+5. Install the GCP Linux Guest Environment on the running instance (in-place installation). For instructions, see the section titled **Install Guest Environment In-Place** in [Installing the Linux Guest Environment](https://cloud.google.com/compute/docs/instances/linux-guest-environment). Select the **CENTOS/RHEL** option. Copy the command script and paste it at the command prompt to run the script immediately.
 6. Make the following configuration changes to the instance.
 
-   **Note:** These change are based on GCP recommendations for custom images. See Configuring Imported Images.
+   **Note:** These change are based on GCP recommendations for custom images. See [Configuring Imported Images](https://cloud.google.com/compute/docs/images/configuring-imported-images).
    
-   - Edit the /etc/chrony.conf file. Remove all NTP servers. Add the following NTP server.
+   - Edit the ```/etc/chrony.conf``` file. Remove all NTP servers. Add the following NTP server.
       ```
       metadata.google.internal iburst Google NTP server
       ```
@@ -181,13 +215,13 @@ Complete the following steps to create and configure an instance so it complies 
       ```
       # ln -sf /usr/share/zoneinfo/UTC /etc/localtime
       ```
-   - (Optional) Edit the /etc/ssh/ssh_config file and add the following lines to the end of the configuration. This keeps your SSH session alive during longer periods of inactivity.
+   - (Optional) Edit the ```/etc/ssh/ssh_config``` file and add the following lines to the end of the configuration. This keeps your SSH session alive during longer periods of inactivity.
       ```
       # Server times out connections after several minutes of inactivity.
       # Keep alive ssh connections by sending a packet every 7 minutes.
       ServerAliveInterval 420
       ```
-   - Disable password access. Edit /etc/cloud/cloud.cfg and change ssh_pwauth from 1 to 0.
+   - Disable password access. Edit ```/etc/cloud/cloud.cfg``` and change **ssh_pwauth** from **1** to **0**.
       ```
       ssh_pwauth: 0
       ```
@@ -202,7 +236,7 @@ Complete the following steps to create and configure an instance so it complies 
       ```
 #### Take a snapshot and create a snapshot image
 
-Enter the following commands to preserve the instance configuration settings and create a snapshot. See Creating Persistent Disk Snapshots for additional information.
+Enter the following commands to preserve the instance configuration settings and create a snapshot. See [Creating Persistent Disk Snapshots](https://cloud.google.com/compute/docs/disks/create-snapshots) for additional information.
 
 1. On the running instance, enter the following command to synchronize data to disk.
    ```
@@ -216,5 +250,7 @@ Enter the following commands to preserve the instance configuration settings and
    ```
    $ gcloud compute images create <ConfiguredImageFromSnapshot> --source-snapshot <SnapshotName>
    ```
+4. Using your new RHEL 7.7 image, you can now move on to setting up your nodes, and installing Openshift Enterprise.
+
 
 Next Step: [Installing Openshift Enterprise on Google Cloud](https://github.com/chainlynx/google-cloud-openshift-ocp)
