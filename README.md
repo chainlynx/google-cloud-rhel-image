@@ -32,7 +32,7 @@ Therefore, this guide is aimed at creating a custom image, adding support for th
 
 Complete the following steps to create the base RHEL 7.7 VM image for GCP. Complete this procedure using a RHEL 7 Server, Centos 7 Server, or Fedora. For the purpose of this guide, we'll use the Centos 7 workstation created in the previous steps: [Installing / Configuring GNOME and VNC Server](https://github.com/chainlynx/google-cloud-centos-workstation/blob/master/Installing-Configuring-GNOME.md).
 
-##### Before you Start
+#### Before you Start
 
 You need the following packages installed on your Centos 7 workstation to create an configure the RHEL 7.7 VM image.
 
@@ -64,13 +64,13 @@ You need the following packages installed on your Centos 7 workstation to create
   </tr>
 </table>
 
-##### Install and configure the Google Cloud SDK
+#### Install and configure the Google Cloud SDK
 
 Most examples in this guide use [gcloud](https://cloud.google.com/sdk/gcloud/) and [gsutil](https://cloud.google.com/storage/docs/gsutil) to manage RHEL resources in GCP. You install the Google Cloud SDK on your workstation to get these utilities. For information about how to install and configure the Google Cloud SDK, see the [Quickstart for Red Hat and Centos](https://cloud.google.com/sdk/docs/quickstart-redhat-centos).
 
 **Note**: You can also use the [GCP Console](https://console.cloud.google.com/) or [API requests](https://cloud.google.com/compute/docs/api/getting-started) to manage resources in GCP. Using the API also requires the Google Cloud SDK.
 
-##### Create a GCP image bucket
+#### Create a GCP image bucket
 
 You use the GCP storage utility (gsutil) to create a bucket where you store your images. Enter the following command to create a bucket for your image(s).
 
@@ -84,7 +84,7 @@ Example:
 $ gsutil mb gs://rhel-77-bucket/
 ```
 
-#### Next Steps
+### Next Steps
 
 1. Download the latest 7.7 (or later) version of [Red Hat Enterprise Linux](https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.7/x86_64/product-software) from the Red Hat Customer Portal. You should download the **Red Hat Enterprise Linux KVM Guest Image***.
 2. Move the image to ```/var/lib/libvirt/images```
